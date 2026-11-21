@@ -11,22 +11,23 @@ jobs:
   build-ipa:
     runs-on: macos-15
 
-    env:
-      PROJECT_PATH: "YourApp.xcodeproj"
-      SCHEME_NAME: "YourApp"
-      CONFIGURATION: "Release"
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
 
       - name: Build iOS App (Unsigned for eSign)
         run: |
           mkdir -p build/ipa/Payload
           xcodebuild \
-            -project "$PROJECT_PATH" \
-            -scheme "$SCHEME_NAME" \
-            -configuration "$CONFIGURATION" \
+            -project CADENZZA.xcodeproj \
+            -scheme CADENZZA \
+            -configuration Release \
             -sdk iphoneos \
             -arch arm64 \
             -derivedDataPath build/DerivedData \
@@ -36,11 +37,11 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             build
 
-      - name: Package .ipa
+      - name: Package .ipa into Payload archive
         run: |
-          APP_PATH=$(find build/DerivedData/Build/Products/${CONFIGURATION}-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
+          APP_PATH=$(find build/DerivedData/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "Could not find built .app"
+            echo "Error: Could not find built .app bundle."
             exit 1
           fi
           cp -R "$APP_PATH" build/ipa/Payload/
