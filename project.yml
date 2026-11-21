@@ -1,0 +1,40 @@
+name: CADENZZA
+options:
+  bundleIdPrefix: com.cadenzzautil
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "16.4"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+    CLANG_CXX_LIBRARY: "libc++"
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+    HEADER_SEARCH_PATHS:
+      - "$(inherited)"
+      - "$(SRCROOT)/Bridge"
+      - "$(SRCROOT)/Converter"
+
+targets:
+  CADENZZA:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+        excludes:
+          - "App-Bridging-Header.h"
+      - path: Bridge
+      - path: Converter
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cadenzzautil.app
+        INFOPLIST_KEY_CFBundleDisplayName: CADENZZA
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        SWIFT_OBJC_BRIDGING_HEADER: "Sources/App-Bridging-Header.h"
+        GENERATE_INFOPLIST_FILE: "YES"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: ""
+        PROVISIONING_PROFILE_SPECIFIER: ""
+        ENABLE_BITCODE: "NO"
