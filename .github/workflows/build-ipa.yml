@@ -1,0 +1,55 @@
+name: Build Unsigned iOS IPA
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    runs-on: macos-15
+
+    env:
+      PROJECT_PATH: "YourApp.xcodeproj"
+      SCHEME_NAME: "YourApp"
+      CONFIGURATION: "Release"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build iOS App (Unsigned for eSign)
+        run: |
+          mkdir -p build/ipa/Payload
+          xcodebuild \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME_NAME" \
+            -configuration "$CONFIGURATION" \
+            -sdk iphoneos \
+            -arch arm64 \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            build
+
+      - name: Package .ipa
+        run: |
+          APP_PATH=$(find build/DerivedData/Build/Products/${CONFIGURATION}-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Could not find built .app"
+            exit 1
+          fi
+          cp -R "$APP_PATH" build/ipa/Payload/
+          cd build/ipa
+          zip -qry "../../unsigned-app.ipa" Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-ipa
+          path: unsigned-app.ipa
+          retention-days: 7
